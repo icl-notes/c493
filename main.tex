@@ -1,0 +1,1021 @@
+\documentclass[12pt,twoside]{article}
+
+\newcommand{\reporttitle}{493 Data Analysis and Probabilistic Inference}
+\newcommand{\reportauthor}{}
+\newcommand{\reporttype}{Notes for 2016/2017}
+\newcommand{\cid}{}
+
+% include files that load packages and define macros
+\input{includes} % various packages needed for maths etc.
+\input{notation} % short-hand notation and macros
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+% front page
+\input{titlepage}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Main document
+\section{Bayes Theorem and Bayesian Inference}
+
+\begin{enumerate}
+\item Bayes Theorem: 
+\begin{align*}
+P(D\cap S ) &= P(D\vert S)P(S) = P(S \vert D) P(D)\\
+P(D\vert S) & = \alpha \times P(D) \times P(S\vert D)
+\end{align*}
+
+\item Law of Total Probability:
+\begin{align*}
+P(F) = \sum_{i=1}^n P(F\cap E_i) = \sum_{i=1}^n P(F\vert E_i)P(E_i)
+\end{align*}
+
+\item Conditional Independence: Two events $D$ and $S$ are conditionally independent given $G$  if $P(G) \neq 0$ and one of the following holds:
+\begin{enumerate}
+\item $P(D\vert S\cap G) = P(D\vert G)$ and $P(D\vert G)\neq 0, P(S\vert G)\neq 0$ 
+\item $P(D\vert G) = 0$ or $P(S\vert G)=0$
+\item $P(D\cap S\vert G)=P(D\vert G)P(S\vert G)$
+\end{enumerate}
+
+\item Bayesian Inference: Given a set of competing hypothesis which explain a data set, for each hypothesis:
+\begin{enumerate}
+\item Convert the prior and likelihood information in the data into probabilities and take their product
+\item Normalize the result to get the posterior probabilities of each hypothesis given the evidence
+\item Select the most probably hypothesis
+\end{enumerate}
+\end{enumerate}
+
+\newpage
+
+\section{Simple Bayesian Networks}
+
+\begin{enumerate}
+
+\item We have to assume the Causal Markov Condition has the following difficulties inherent in large instances 
+\begin{enumerate}
+\item The joint probabilities are hard to estimates
+\item Even if the joint probabilities can be obtained, there are too many number of instances
+\end{enumerate}
+
+\item \textbf{Causal Markov Condition:} Suppose we have a joint probability distribution $P$ of the random variables in some set $\mathcal{V}$ and a DAG $\mathbb{G}=(\mathcal{V}, E)$ . We say that $(\mathbb{G}, P)$ satisfies the Markov condition if for each variable $X\in \mathcal{V}$, $\lbrace X \rbrace$ is conditional independent of \textbf{the set of all its nondescendents given the set of all its parents}. Let $ND_X$ be the non-descendents and $PA_X$ be the parents of $X$. 
+\begin{align*}
+I_P(\lbrace X \rbrace, ND_X \vert PA_X)
+\end{align*}
+
+\item Possible violations of the Causal Markov Condition:
+\begin{enumerate}
+\item Hidden cause: $X$ and $Y$ is said to have a common cause if there exists some variable that has causal paths into both of them. If we fail to model this common cause, in short (exists a hidden cause), the Markov condition would be violated as it assumes independence.
+\item Selection bias: It is similar to hidden cause. The variables we observe shows independence when actually because of our sampling error.
+\item Feedback loops: Causal relationships need to be only one way. The child node under no circumstances should influence the parent node.
+\end{enumerate}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width = 0.4\hsize]{./figures/NaiveBayes.png} % this includes the figure and specifies that it should span 0.7 times the horizontal size of the 
+\caption{Example of naive bayes network. Given the parent $C$, the node $E$ and $F$ meet the causal markov condition, i.e. they are conditionally independent.} % caption of the figure
+\label{fig:NaiveBayes} % a label. When we refer to this label from the text, the figure number is included automatically
+\end{center}
+\end{figure}
+
+\item Each arc in a simple network is represented by a link matrix (conditional probability matrix)
+\begin{align*}
+\vec{P}(\vec{D}\vert \vec{C})&= \left[P(d_i \vert c_j) \right] = 
+\begin{bmatrix}
+P(d_1\vert c_1) & P(d_1\vert c_2) \\
+P(d_2\vert c_1) & P(d_2\vert c_2) \\
+P(d_3\vert c_1) & P(d_3\vert c_2) \\
+P(d_4\vert c_1) & P(d_4\vert c_2) \\ 
+\end{bmatrix}
+\end{align*}
+
+\item The root nodes of a network do not have any parents. They have a vector giving the prior probabilities
+\begin{align*}
+\vec{P}(\vec{C})&= \left[P(c_i) \right] = 
+\begin{bmatrix}
+P(c_1) & P(c_2) 
+\end{bmatrix}
+\end{align*}
+
+\item \textbf{Instantiation} means setting the value of a node. 
+
+\item \textbf{Bayesian Classifiers} using the above network. 
+
+\begin{enumerate}
+\item We cannot compute $E$ as it is a latent variable that we compute and we do not have measurements. However, we can computed the likelihood of $E$.
+\begin{align*}
+P(E \vert S\cap D) &= \alpha P(E)P(S\vert E)P(D\vert E)& = \alpha P(E) L(E\vert S \cap D)\\
+L(E\vert S \cap D)& = (S\vert E)P(D\vert E)
+\end{align*}  
+
+\item Then we look at the root note $C$. Given $F=f_5$:
+\begin{align*}
+P(C \vert E \cap F)& = \alpha P(C) P(E\vert C)P(F\vert C)\\
+P(e\vert c_k) &= \sum_{i=1}^3 P(e_i\vert c_k)L(e_i)\\
+P^\prime (c_k)& = P(c_k\vert e \cap f_5)= \alpha P(c_k)\left(\sum_{i=1}^3 P(e_i\vert c_k)L(e_i)\right)P(f_5\vert c_k)
+\end{align*}
+
+\item We see the the evidence for C comes from
+\begin{enumerate}
+\item Evidence coming from $E$ and its sub-tree
+\item Evidence from everywhere else.
+\end{enumerate}
+\begin{align*}
+P_E(C) & = \alpha P(C) P(F\vert C)\\
+\vec{P}(\vec{E}) & = \vec{P}(\vec{E}\vert \vec{C})\vec{P}_\vec{E}(\vec{C})
+\end{align*}
+
+\item Suppose if we have the instantiations $S=s_3$ and $D=d_2$
+\begin{align*}
+P^\prime(e_i) = \alpha P(e_i)P(s_3\vert e_i)P(d_2\vert e_i)
+\end{align*}
+
+\end{enumerate}
+
+\end{enumerate}
+
+\newpage
+
+\section{Evidence \& Message Passing}
+
+\begin{enumerate}
+\item New concepts to deal with complex networks with intermediate nodes:
+\begin{itemize}
+\item \textbf{Evidence} is the information that we have at a node -this may be gathered through instantiation (exact value or virtual evidence), or inferred from passing messages. Evidence is unnormalized probabilities so the absolute values are meaningless, but they are useful for making comparisons.
+\item \textbf{Messages} is the information (evidence) passed between nodes to provide evidence to another node.
+\end{itemize}
+
+
+
+\item \textbf{Theorem:} Let $(\mathbb{G}, P)$ be a Bayesian network whose DAG is a tree, where $\mathbb{G} = (V,E)$, and $a$ be a set of values of a subset $A\subset V$. 
+\begin{enumerate}
+\item \textbf{$\lambda$ messages}: For each child $Y$ of $X$, $\forall x \in X$
+\begin{align*}
+\lambda_Y(x) = \sum_y P(y\vert x)\lambda(y)
+\end{align*}
+
+\item \textbf{$\lambda$ values}: 
+\begin{enumerate}
+\item If $X\in A$ and $X$ is instantiated to $\hat{x}$
+\begin{align*}
+\lambda(\hat{x})& = 1,		\text{ for } x = \hat{x}&\\
+\lambda(x) & = 0,				\text{ for } x\neq \hat{x}&
+\end{align*}
+
+\item if $X \notin A$ and $X$ is a leaf, $\forall x \in X$, 
+\begin{align*}
+\lambda(x) = 1
+\end{align*}
+
+\item If $X \notin A$ and $X$ is not a leaf, $\forall x \in X$
+\begin{align*}
+\lambda(x) = \prod_{U\in CH_X} \lambda_U (x),
+\end{align*}
+where $CH_X$ denotes the set of the children of $X$.
+\end{enumerate}
+
+\item  \textbf{$\pi$ messages}: If $Z$ is the parent of $X$, then $\forall z \in Z$
+\begin{align*}
+\pi_X(z) = \pi(z) \prod_{U\in CH_Z-\lbrace X\rbrace} \lambda_U(z)
+\end{align*}
+
+\item \textbf{$\pi$ values}:
+\begin{enumerate}
+
+\item If $X\in A$ and $X$ is instantiated to $\hat{x}$:
+\begin{align*}
+\pi(\hat{x})& = 1,		\text{ for } x = \hat{x}&\\
+\pi(x) & = 0,				\text{ for } x\neq \hat{x}&
+\end{align*}
+
+\item If $X\notin A$ and $X$ is the root, $\forall x\in X $
+\begin{align*}
+\pi(X) = P(x)
+\end{align*}
+
+\item If $X\notin A$, X is not the root and $Z$ is the parent of $X$, $\forall x \ in X$
+\begin{align*}
+\pi(x) = \sum_z P(x\vert z) \pi_X(z)
+\end{align*}
+
+\end{enumerate}
+\item Given the definitions, for each variable $X$, we have for all values of x,
+\begin{align*}
+P(x\vert a) = \alpha \lambda(x) \pi(x)
+\end{align*}
+
+\end{enumerate}
+
+\item The $\pi$ values are basically evidence from the parents and it generalises the concept of prior. The $\lambda$ values are basically evidence from the descendents and it generalises the concept of likelihood probability.
+
+\item Mnemonic: \textbf{p}i (\(\pi\)), \textbf{p}rior, and ``\textbf{p}arent'' all start with letter ``p''; and \textbf{l}ambda (\(\lambda\)), \textbf{l}ikelihood, and ``\textbf{l}ad'' all start with ``l''. Further, prior comes \textit{before} so from parents.
+
+\item If we use virtual evidence at the leaf nodes, we can use the conditioning equation (above b(iii))
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width = 0.3\hsize]{./figures/PiLambda.png} % this includes the figure and specifies that it should span 0.7 times the horizontal size of the 
+\caption{Upon instantiation of a node, we can propagate the $\lambda$ and $\pi$ messages} % caption of the figure
+\label{fig:NaiveBayes} % a label. When we refer to this label from the text, the figure number is included automatically
+\end{center}
+\end{figure}
+
+\item Important equations:
+\begin{align*}
+\vec{\lambda_S(E)}& = \vec{\lambda(S)P(S\vert E)} 		&	\vec{\pi(E)}& = \vec{P(E\vert C)\pi_E(C)}\\
+\lambda(e_i) &= \prod_{CH_E} \left[\sum_{j} \lambda(s_j)P(s_j\vert e_i)\right] &
+\pi(e_i)& = \sum_j \left[P(e_i\vert c_j)\pi(c_j)\prod_{k\backslash E}\lambda_k(c_j)\right]
+\end{align*}
+
+\item Notation
+\begin{enumerate}
+\item $\vec{\lambda_F(c)}$ means $\lambda$ evidence from node $F$ to node $C$.
+\item $\vec{\pi_F(c)}$ means $\pi$ from all nodes besides $F$ for node $C$. (This can alternatively viewed as the information from $C$ to $F$)
+\end{enumerate}
+
+
+
+\end{enumerate}
+
+\subsection{Probability Propagation in Trees}
+	\subsubsection{Operative Formulas}
+		\begin{enumerate}
+			\item If $B$ is a child of $A$, $B$ has $k$ possible values, and $A$ has $m$ possible values, then for $1\leq j \leq m$, the $\lambda$ message from B to A is given by
+				\begin{align*}
+					\lambda_B(a_j) = \sum_{i=1}^k P(b_i\vert a_j) \lambda(b_i)
+				\end{align*}
+	
+			\item If $B$ is a child of $A$ and $A$ has $m$ possible values, then for $1 \leq j \leq m$ the  $\pi$ message from $A$ to $B$ is given by
+				\begin{align*}
+					\pi_B(a_j) = \begin{cases}
+					1															& \text{ if $A$ is instantiated for $a_j$}\\
+					0															& \text{ if $A$ is instantiated, but not for $a_j$}\\
+					\frac{P^\prime(a_j)}{\lambda_B(a_j)}	& \text{ if $A$ is not instantiated}
+					\end{cases}
+				\end{align*}
+					where $P^\prime (a_j)$ is the current conditional probability of $a_j$ based on the variables thus fr instantiated.
+					
+			\item If $B$ is a variable with $k$ possible values, $s(B)$ is the set of $B$'s children, then for $1 \leq i \leq k$ the $\lambda$ value of $B$ is given by
+				\begin{align*}
+					\lambda(b_i) = \begin{cases}
+					\prod_{C\in s(B)} \lambda_C(b_i)			&  \text{ if $B$ is not instantiated}\\
+					1															&	\text{ if $B$ is instantiated for $b_i$}\\
+					0															&	\text{ if $B$ is instantiated, but not for $b_i$}
+					\end{cases}
+				\end{align*}
+				
+			\item If $B$ is a variable with $k$ possible values, $A$ is the parent of $B$, and $A$ has $m$ possible values, the for $1\leq i \leq k$ the $\pi$ value of $B$ is given by
+				\begin{align*}
+					\pi(b_i)	= \sum_{j=1}^m P(b_i\vert a_j) \pi_B(a_j)
+				\end{align*}
+				
+			\item If $B$ is a variable with $k$  possible values, then for $1 \leq i \leq k$, $P^\prime (b_i)$, the conditional probability of $b_i$ based on the variables thus far instantiated, is given by
+				\begin{align*}
+					P^\prime(b_i) = \alpha \lambda(b_i)\pi(b_i)
+				\end{align*}
+
+			\end{enumerate}
+
+\subsubsection{Initialization}
+\begin{enumerate}
+	\item Set all $\lambda$ messages and $\lambda$ values to $1$.
+	\item If the root $A$ has $m$ possible values, then for $1 \leq j \leq m$, set
+		\begin{align*}
+			\pi(a_j) = P(a_j)
+		\end{align*}
+	\item For all children $B$ of the root $A$, post a new $\pi$ message to $B$ using operative formula (2).
+	
+	
+\subsubsection{Updating}
+ When a variable is instantiated or a $\lambda$ or $\pi$ message is received by a variable, one of the following updating procedures is used:
+ 
+ \begin{enumerate}
+\item \textbf{Instantiation.} If a variable $B$ is instantiated for $b_j$, then
+	\begin{enumerate}
+		\item Set $P^\prime (b_j)=1$ and for $i \neq j$, set $P^\prime(b_i)=0$
+		\item Compute $\lambda (B)$ using operative formula (3).
+		\item Post a new $\lambda$ message to $B$'s parents using operative formula (1).
+		\item Post a new $\pi$ message to $B$'s children using operative formula (2).
+	\end{enumerate}
+	
+
+\item \textbf{Upward Propagation.} If a variable $B$ receives a new $\lambda$ message from one of its children and if $B$ is not already instantiated, then
+	\begin{enumerate}
+		\item Compute the new value for $\lambda (B)$ using operative formula (3)
+		\item Compute the new value of $P^\prime(B)$ using operative formula (5)
+		\item Post new $\lambda$ message to $B$'s parents using operative formula (1)
+		\item Post new $\pi$ messages to $B$'s other children using operative formula (2)
+	\end{enumerate}
+
+
+\item \textbf{Downward Propagation.} If a variable $B$ receives a new  $\pi$ message from its parent and if $B$ is not already instantiated, then
+	\begin{enumerate}
+		\item Compute the new value of $\pi(B)$ using operative formula (4)
+		\item Compute the new value of $P^\prime(B)$ using operative formula (5)
+		\item Post new $\pi$ messages to $B$'s children using operative formulat (2)
+	\end{enumerate}
+
+ \end{enumerate}
+
+
+
+\end{enumerate}
+
+\newpage
+
+\section{Single Connected Networks}
+\begin{enumerate}
+\item A DAG is singly connected if there is at most one path between any two nodes. In a singly-connected network, each node can have more than 1 parents.
+\item The main properties of these networks are:
+\begin{enumerate}
+\item The parents of a node are always independent given their common child (i.e. they don't have a common parent). This lets us calculate their joint probability as the product of their marginals.
+\item When updating evidence of a node, the belief propagated through the net to update all nodes is guaranteed to reach a steady state.
+\end{enumerate}
+
+\item An example of a link matrix for a node with multiple parents looks as follows:
+\begin{align*}
+\mat{P(e|w,c)} = \begin{bmatrix} 
+P(e_1|w_1,c_1) & P(e_1|w_1,c_2) & P(e_1|w_2,c_1) & P(e_1|w_2,c_2)\\ 
+(e_2|w_1,c_1) & P(e_2|w_1,c_2) & P(e_2|w_2,c_1) & P(e_2|w_2,c_2) \\ 
+P(e_3|w_1,c_1) & P(e_3|w_1,c_2) & P(e_3|w_2,c_1) & P(e_3|w_2,c_2) \end{bmatrix}
+\end{align*}
+
+
+\item To calculate the \(\pi\) evidence of a node with 2 parents (assuming independence between the parents): 
+\begin{align*} 
+\pi(\mat{E}) = \mat{P(e|w,c)}\mat{\pi_e(w,c)} = \mat{P(e|w,c)}\mat{\pi_e(w)\pi_e(c)}
+\end{align*}
+
+\item To calculate the \(\lambda\) evidence of a node with 2 parents, we have to calculate one \(\lambda\) message for each of the parents. If \(c\) has parents \(a\) and \(b\), then the evidence from \(c\) to \(a\) is as follows: 
+\begin{align*} 
+\lambda_c(a_i) = \sum_{j=1}^n\pi_{c}(b_j)\sum_{k=1}^m P(c_k|a_i,b)\lambda(c_k)
+\end{align*}
+where \(n\) is the number of values that \(b\) takes, and \(m\) is the number of values \(c\) takes. 
+
+
+\item \textbf{Theorem:} Let $(\mathbb{G}, P)$ be a Bayesian network that is singly-connected, where $\mathbb{G} = (V,E)$, and $a$ be a set of values of a subset $A\subset V$. 
+\begin{enumerate}
+\item \textbf{$\lambda$ messages}: For each child $Y$ of $X$, $\forall x \in X$
+\begin{align*}
+\lambda_Y(x) = \sum_y \left[ \sum_{w_1,\dots, w_k} \left(P(y\vert x, w_i,\dots,w_k)\prod_{i=1}^k \pi_Y(w_i)\right)\right] \lambda(y)
+\end{align*}
+where $\lbrace W_i \rbrace_{i=1}^k$ are the other parents of $Y$.
+
+\item \textbf{$\lambda$ values}: 
+\begin{enumerate}
+\item If $X\in A$ and $X$ is instantiated to $\hat{x}$
+\begin{align*}
+\lambda(\hat{x})& = 1,		\text{ for } x = \hat{x}&\\
+\lambda(x) & = 0,				\text{ for } x\neq \hat{x}&
+\end{align*}
+
+\item if $X \notin A$ and $X$ is a leaf, $\forall x \in X$, 
+\begin{align*}
+\lambda(x) = 1
+\end{align*}
+
+\item If $X \notin A$ and $X$ is not a leaf, $\forall x \in X$
+\begin{align*}
+\lambda(x) = \prod_{U\in CH_X} \lambda_U (x),
+\end{align*}
+where $CH_X$ denotes the set of the children of $X$.
+\end{enumerate}
+
+\item  \textbf{$\pi$ messages}: If $Z$ is the parent of $X$, then $\forall z \in Z$
+\begin{align*}
+\pi_X(z) = \pi(z) \prod_{U\in CH_Z-\lbrace X\rbrace} \lambda_U(z)
+\end{align*}
+
+\item \textbf{$\pi$ values}:
+\begin{enumerate}
+
+\item If $X\in A$ and $X$ is instantiated to $\hat{x}$:
+\begin{align*}
+\pi(\hat{x})& = 1,		\text{ for } x = \hat{x}&\\
+\pi(x) & = 0,				\text{ for } x\neq \hat{x}&
+\end{align*}
+
+\item If $X\notin A$ and $X$ is the root, $\forall x\in X $
+\begin{align*}
+\pi(X) = P(x)
+\end{align*}
+
+\item If $X\notin A$, X is not the root and $\lbrace Z_i \rbrace_{i=1}^j$ are the parents of $X$, $\forall x \ in X$
+\begin{align*}
+\pi(x) = \sum_{z_1,\dots, z_j} \left(P(x\vert z_1,\dots, z_j) \prod_{i=1}^j \pi_X(z_i)\right)
+\end{align*}
+
+\end{enumerate}
+\item Given the definitions, for each variable $X$, we have for all values of x,
+\begin{align*}
+P(x\vert a) = \alpha \lambda(x) \pi(x)
+\end{align*}
+
+\end{enumerate}
+
+	\item \textbf{Blocked Path (very important to understand this):}
+		\begin{itemize}
+			\item For a diverging path: when the node is instantiated, it will block the passing message between other nodes.
+			\item For a converging path: it is blocked when there is no $\lambda$ evidence on the child node, but unblocked when there is $\lambda$ evidence or when the node is instantiated.
+
+			\begin{align*}
+				\lambda_C(a_i)& = \sum_{j=1}^m \pi_C (b_j) \sum_{k=1}^n P(c_k \vert a_i \cap b_j) \lambda(c_k)\\
+				\lambda(c_k) & = 1, \forall c_k \Rightarrow \lambda_C(a_i) = \sum_{j=1}^m \pi_C (b_j) 
+			\end{align*}
+		\end{itemize}
+		
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width = 0.50\hsize]{./figures/ConvergingConnection.png} % this includes the figure and specifies that it should span 0.7 times the horizontal size of the 
+\caption{Converging Connections} % caption of the figure
+\label{fig:NaiveBayes} % a label. When we refer to this label from the text, the figure number is included automatically
+\end{center}
+\end{figure}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width = 0.55\hsize]{./figures/DivergingConnection.png} % this includes the figure and specifies that it should span 0.7 times the horizontal size of the 
+\caption{Diverging Connection} % caption of the figure
+\label{fig:NaiveBayes} % a label. When we refer to this label from the text, the figure number is included automatically
+\end{center}
+\end{figure}
+
+\end{enumerate}
+
+
+\subsection{Probability Propagation}
+\subsubsection{The Operating Equations for Probability Propagation}
+	\begin{enumerate}
+		\item \textbf{The $\lambda$ Message.} If $C$ is a child of $A$ and $B$, then the $\lambda$ message from $C$ to $A$ is given by
+			\begin{align*}
+				\lambda_C(a_i)& = \sum_{j=1}^m \pi_C(b_j) \sum_{k=1}^n P(c_k \vert a_i, b_j)\lambda(c_k)\\
+				\vec{\lambda_C(A)}&=\vec{\lambda(C)P(C\vert A)}\\
+				\lambda_C(a_i)& = \sum_{j=1}^m \pi_C(b_j) \lambda_C(a_i \cap b_j)
+			\end{align*}
+
+
+		\item {The $\pi$ Message:} If $C$ is a child of $A$, the $\pi$ message from $A$ to $C$ is:
+			\begin{align*}
+				\pi_C(a_i) & = \begin{cases}
+						1 													& \text{if $A$ is instantiated for $a_i$} \\
+						0 													& \text{if $A$ is instantiated but not for $a_i$} \\
+						P^\prime(a_i)/\lambda_C(a_i)		 	& \text{if $A$ is not instantiated}
+				\end{cases}
+			\end{align*}
+		where $P^\prime(a_i)$ is defined to be the current conditional probability of $a_i$ based on the variables thus far instantiated.
+
+		\item {The $\lambda$ Evidence:} If $C$ is a node with $n$ children $D_1, \dots, D_n$, then the $\lambda$ evidence for $C$ is
+			\begin{align*}
+				\lambda(c_k) &=\begin{cases}
+						1											& \text{if $C$ is instantiated for $c_k$}\\
+						0											& \text{if $C$ is instantiated but not for $c_k$}\\
+						\prod_i \lambda_{D_i}(c_k)	& \text{if $C$ is not instantiated}
+				\end{cases}
+			\end{align*}
+
+		\item {The $\pi$ Evidence:} If $C$ is a child of two parents $A$ and $B$, the $pi$ evidence for $C$ is:
+			\begin{align*}
+				\pi(c_k)& = \sum_{i=1}^l \sum_{j=1}^m P(c_k \vert a_i, b_j)\pi_C(a_i)\pi_C(b_i)\\
+				\vec{\pi(C)}& = \vec{P(C\vert A)\pi_C(A)}
+			\end{align*}
+
+		\item {The Posterior Probabilities:} If $C$ is a variable, the posterior probability of $C$ based on the evidence received is
+			\begin{align*}
+				P^\prime(c_k) = \alpha \lambda(c_k) \pi(c_k)
+			\end{align*}
+\end{enumerate}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width = 1.00\hsize]{./figures/ProbabilityPropagation.png} % this includes the figure and specifies that it should span 0.7 times the horizontal size of the 
+\caption{Probability propagation} % caption of the figure
+\label{fig:NaiveBayes} % a label. When we refer to this label from the text, the figure number is included automatically
+\end{center}
+\end{figure}
+
+\subsubsection{Initialization}
+\begin{enumerate}
+	\item All $\lambda$ messages, $\pi$ messages and $\lambda$ values are set to 1.
+	\item For all root nodes $A$, the $\pi$ values are set to the prior probabilities.
+		\begin{align*}
+			\pi(a_j) = P(a_j)
+		\end{align*}
+	\item Post and propagate the $\pi$ messages from the root nodes using downward propagation with operative formula 2.
+\end{enumerate}
+
+\subsubsection{Updating}
+\begin{enumerate}
+
+
+\item \textbf{Upward Propagation.} A node $C$ receives $\lambda$ from a child and $C$ is not instantiated: 
+\begin{itemize}
+	\item Compute the new $\lambda(C)$ using operative equation (3).
+	\item Compute the new posterior probability $P^\prime (C)$ using operative equation (5).
+	\item Post a $\lambda$ message to all $C$'s parents.
+	\item Post a $\pi$ message to all $C$'s other children.
+\end{itemize}
+
+
+\item \textbf{Downward Propagation.} If a variable $C$ receives a $\pi$ message from one parent:
+	\begin{itemize}
+		\item If $C$ is not instantiated:
+			\begin{itemize}
+				\item Compute a new value for array $\pi(C)$ using operative equation (4)
+				\item Compute a new value for $P(C)$ using operative equation (5)
+				\item Post a $\pi$ message to each child.
+			\end{itemize}
+		
+		\item If there is $\lambda$ evidence in $C$
+			\begin{itemize}
+				\item Post a $\lambda$ message to the other parents.
+			\end{itemize}
+	\end{itemize}
+
+\item \textbf{Instantiation.} If $C$ is instantiated for state $c_k$,
+\begin{itemize}
+	\item Set $P^\prime (c_j) = 0, \forall j\neq k$
+	\item Set $P^\prime (c_k) =1$ 
+	\item Compute $\lambda (C)$ using operative equation (3)
+	\item Post $\lambda$ and $\pi$ message to each parent and each child of $C$ respectively.
+\end{itemize}
+
+
+\end{enumerate}
+
+
+
+
+
+
+
+\newpage
+
+\section{Building Networks from Data}
+
+\begin{enumerate}
+\item Building networks from data:
+\begin{enumerate}
+\item \textbf{Expert knowledge}: We can obtained the network structure would be known or readily obtainable from an expert. This approach is highly subjective and reliant on the expert advice.
+\item \textbf{Spanning tree algorithms}: Main idea is to start with a set of nodes to which we add arcs until a complete network is created.
+\begin{enumerate}
+\item The nodes that are joined by arcs are depedent and those not are at least conditionally independent. Hence the strategy is to add arcs that connect variables that are most dependent.
+\item For every pair of variables calculate the dependency. Then join the nodes in dependency order, provided the resulting structure has no loops
+\item The algorithm minimises the KL divergence between the network joint probability and the data joint probability
+\end{enumerate}
+\end{enumerate}
+
+\item \textbf{Adding Causal Directions:}
+\begin{enumerate}
+\item If a node is considered a root node, we will point all arrows from it. 
+\item On the whole, cause is a semantic entity that needs human intervention to determine.
+\end{enumerate}
+
+
+\item \textbf{Measures of dependencies}
+
+    Weighted measures are used to reduce dependencies for less likely values.
+        
+\begin{itemize}
+\item \textbf{$L1$ dependency measure}:
+\begin{align*}
+    \text{\textit{unweighted:}} \qquad Dep (A,B) & = \sum_{A\times B} \left\vert P(a_i \cap b_j) - P(a_i)P(b_j)\right\vert \\
+    \text{\textit{weighted:}} \qquad Dep (A,B) & = \sum_{A\times B} P(a_i \cap b_j) \times \left\vert P(a_i \cap b_j) - P(a_i)P(b_j)\right\vert 
+\end{align*}
+\item \textbf{$L2$ dependency measure}:
+\begin{align*}
+\text{\textit{unweighted:}} \qquad Dep (A,B) & = \sum_{A\times B} \left(P(a_i \cap b_j) - P(a_i)P(b_j)\right)^2\\
+\text{\textit{weighted:}} \qquad Dep (A,B) & = \sum_{A\times B} P(a_i \cap b_j) \times \left(P(a_i \cap b_j) - P(a_i)P(b_j)\right)^2
+\end{align*}
+As the probabilities becomes small they contribute less to the dependency, and this effect is acceptable since we have little information on rare events. 
+The weighted version of the $L1$ and $L2$ further reduces the dependency for low probability values.
+
+\item \textbf{Kullback-Leibler Measure (mutual entropy)}
+\begin{itemize}
+\item It is zero when two variables are completely independent
+\item It is positive and increasing with dependency when applied to probability distributions
+\item It is independent of the actual value of probability
+\item Can be computed as follows
+\begin{align*}
+Dep(A,B)& = \sum_{A\times B} P(a_i \cap b_j) \log_2\left[\frac{P(a_i \cap b_j)}{P(a_i)P(b_j)}\right]
+\end{align*}
+
+\end{itemize}
+
+\item \textbf{Correlation}
+\begin{itemize}
+\item Measures only linear dependency whereas mutual entropy can characterise higher order dependencies more accurately.
+\item Can be computed as follows:
+\begin{align*}
+C(A,B) & = \frac{\Sigma_{AB}}{\sqrt{\sigma_A\sigma_B}}\\
+\Sigma_{AB}& = \frac{1}{N-1}\sum_{i=1}^N (a_i -\bar{a}_i)(b_i -\bar{b}_i)\\
+\sigma_A& = \frac{1}{N-1}\sum_{i=1}^N (a_i -\bar{a}_i)^2
+\end{align*}
+\end{itemize}
+\end{itemize}
+
+\end{enumerate}
+
+
+\newpage 
+
+
+
+
+\section{Cause and Independence}
+
+
+
+\begin{enumerate}
+\item Independence: In a network, if there is no path between two variables, they are independent. 
+\begin{itemize}
+\item Two variables can be connected by a path in a network and still be independent as the conditional probability can express no dependency.
+\item In theory, the absence of an arc is more significant than the presence of an arc. However, in theory we avoid arcs with very low dependency in networks.
+\item The spanning tree algorithm can be terminated when the dependecy becomes too low to be significant.
+\end{itemize}
+
+\item (d-separation) Let $\mathbb{G}=(V,E)$ be a DAG, $A\subseteq V$ and $X$ and $Y$ be distinct nodes in $V-A$. $X$ and $Y$ are d-separated by $A$ in $\mathbb{G}$ if every chain between $X$ and $Y$ is blocked by $A$.
+
+\item Possible configurations of connected triplets:
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width = 0.4\hsize]{./figures/TripletConfig.png} % this includes the figure and specifies that it should span 0.7 times the horizontal size of the 
+\caption{Possible configurations of connected triplets.} % caption of the figure
+\label{fig:NaiveBayes} % a label. When we refer to this label from the text, the figure number is included automatically
+\end{center}
+\end{figure}
+
+\begin{enumerate}
+\item \textbf{Non-colliders}: If $C$ is instantiated, no messages pass from $A$ to $B$.
+\item \textbf{Colliders:} The nodes $A$ and $B$ are independent if there is no information on C. 
+	\begin{itemize}
+		\item Marginal Independence: We can measure the dependence between A and B using all the data. If this is low, the configuration may be multiple parent.
+		\item Conditional Independence: We can partition data according to states of C and compute the dependency between A and B. If this is high, the configuration may be multiple parent.
+		\begin{figure}[H]
+			\begin{center}
+				\includegraphics[width = 0.8\hsize]{./figures/MultParent.png} % this includes the figure and specifies that it should span 0.7 times the horizontal size of the 
+				\caption{Practical computation.} % caption of the figure
+				\label{fig:NaiveBayes} % a label. When we refer to this label from the text, the figure number is included automatically
+			\end{center}
+		\end{figure}			
+	\end{itemize}
+\end{enumerate}
+
+\item  \textbf{Determining Causal Directions:} 
+	\begin{enumerate}
+		\item Compute the maximally weighted spanning tree
+		\item For each connected triplet in the spanning tree
+		\begin{itemize}
+			\item Compute the joint probability of the triplet
+			\item Compute the marginal dependence and condition dependence
+			\item If marginal dependence is low and the conditional dependence is high, put in causal directions corresponding to a collider			
+		\end{itemize}
+		\item Propagate the causal arrows as far as possible
+	\end{enumerate}
+
+\item Structure and Parameter Learning
+	\begin{itemize}
+		\item Bayesian networks 
+			\begin{itemize}
+				\item Combined both structure and parameter learning. 
+				\item We can express our knowledge by choosing the structure or we can learn it through data.
+				\item Incorporate known causal relations but have the potential to learn cause from data.
+			\end{itemize}
+		\item Neural networks
+			\begin{itemize}		
+		 		\item Offers only parameter learning. 
+		 		\item It is difficult to embed knowledge or infer structure from a neural network.
+		 		\item Most applicable when we have no causal knowledge but we cannot extract causal information from them.
+		 	\end{itemize}
+		\item Rule based system (logic based)
+			\begin{itemize}
+				\item Have just structure but they are not scalable and difficult to optimise.
+				\item Most applicable when we have causal knowledge as these systems can represent it well
+			\end{itemize}
+	\end{itemize}
+
+
+\end{enumerate}
+
+\newpage
+
+
+\section{Model Accuracy}
+\begin{enumerate}
+    \item The model may be evaluated using  \textbf{maximum likelihood estimation}.
+		\begin{align*}
+			P(Ds|Bn) 	&= \prod_{data} P(Bn)\\
+							&= \prod_{i} P(x_i)P(y_i\vert x_i) \text{ (case of two variables)}
+		\end{align*}		    
+    
+        \begin{itemize}
+            \item Above is the general formulation, but to avoid underflow errors, one may take the log likelihood. If the log we take is base 2, then the log likelihood is known as the information measure since 
+            			$\log_2$ N bits are required to represent integers up to $N$.
+				\begin{align*}
+					\log(P(Ds|Bn)) = \sum_{data} log(P(Bn))
+				\end{align*}            
+
+            \item $Ds$ is a given dataset, $Bn$ is a our BayesNet model, and $\prod_{data}P(Bn)$ is the joint probability of the model multiplied over all values in the dataset.
+            \item Larger models get higher scores, so size becomes a confounding variable.
+        \end{itemize}
+        
+    \item \textbf{Minimum Description Length Score} (MDLScore, also known as Bayesian Information Criterion) penalises larger models to provide a fair comparison for smaller models. The size of the model is characterized by the number of parameters.
+			\begin{align*}
+				MDLScore = \frac{\vert B_n \vert}{2}\log_2 N -\log_2 P(D_s\vert B_n)
+			\end{align*}			    
+    
+        \begin{itemize}
+        	\item A gentle reminder of principle of parsimony or Occam's Razor: A simple model is preferred to a complex model. 
+        	\item The first part of the above equation is the average number of bits required to store the values. 
+            \item \textbf{Example}. If a network has a parent and a child, and we have 4 datapoints ($N=4$, each node takes 2 values), the parent has a prior probability of 2 parameters, and the conditional table has $2\times2 =4 $. Therefore, $Size(Bn|Ds) = |Bn|log_2(4)/2 = [(2-1) + (2-1)\times2]log_2(4)/2  = 3 \times 2/2 = 3$.
+            \item MDL Score is not an absolute measure. It can only be used to compare two models of the same data set.
+            \item \textbf{need to add why this is a better measure than euclidean distance (from tutorial)}
+        \end{itemize}
+               
+        
+	\item \textbf{Measuring Predictive Accuracy}: Split the data into training data and test data, then use the test data to measure the network accuracy. It can be used to minimize the number of variables in a spanning tree.
+		\begin{itemize}
+			\item Build a spanning tree and obtain an ordering of the nodes starting at the root.
+			\item Remove all the arcs.
+			\item Add arcs in the order of their dependency.
+			\item If the predictive accuracy is good enough, stop. Else, go back to 3rd step.
+		\end{itemize}			
+	
+\end{enumerate}
+
+
+\newpage
+
+\section{Approximate Inference}
+\begin{enumerate}
+
+	\item For highly dependent data, we can:
+		\begin{enumerate}
+			\item Model all dependencies - Propagation of probabilities is difficult or infeasible.
+			\item Maximally weighted spanning tree - Does not model dependencies accurately but message passing terminates in one pass and it is very fast.
+		\end{enumerate}
+		
+	\item Problems with loops in networks:
+		\begin{enumerate}
+			\item Looping messages.
+			\item Independence of multiple parents.
+		\end{enumerate}	
+	
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[width = 0.8\hsize]{./figures/LoopsParents.png} % this includes the figure and specifies that it should span 0.7 times the horizontal size of the 
+			\caption{(Left half) When F is instantiated, the messages will not stop propagating. However, if one of B, C or D is instantiated, exact propagation is possible. (Right half) When only A is instantiated, C and D are no independent and the $pi$ evidence at E and F is not correct. Exact propagation can be still carried out if B,C, and D are instantiated.} % caption of the figure
+		\label{fig:NaiveBayes} % a label. When we refer to this label from the text, the figure number is included automatically
+\end{center}
+\end{figure}	
+	
+	\item Approximate Inference Methods:
+		\begin{itemize}
+			\item Node deletion (Seletive Bayes Network)
+			\item Loopy belief propagation
+			\item Hidden / latent node placement
+		\end{itemize}
+		
+	\item \textbf{Node Deletion and Selective Bayes Network}: Main idea is to use a subset of the variables.
+		\begin{itemize}
+			\item Start with a network with all variables then deleting any variables and testing the improvement.
+			\item Alternatively, add variables incrementally and test the performance for each network.
+		\end{itemize}
+		
+\begin{figure}[H]		
+	\begin{center}
+		\includegraphics[width = 0.6\hsize]{./figures/SelectiveBayesianFinal.png} % this includes the figure and specifies that it should span 0.7 times the horizontal size of the 
+			\caption{(Top Row) Adding incrementally.  (Bottom row) Deletion incrementally.}
+		\label{fig:NaiveBayes} % a label. When we refer to this label from the text, the figure number is included automatically
+\end{center}
+\end{figure}			
+		
+		
+	\item \textbf{Loopy Belief Propagation}: Include all arcs expressing significant dependency and allow propagation to continue until
+		\begin{itemize}
+			\item The probability distributions reach a stable state; or
+			\item A limiting number of iterations has occurred (i.e. there may be no steady state)
+		\end{itemize}
+
+	\item \textbf{Hidden Nodes}: If any two children of a parent are not conditionally independent, they can be separated by hidden node.
+		\begin{itemize}
+			\item Switch nodes: Hidden nodes can act as switches to simplify the networks.
+			\item A network can always perform as well with a hidden node as it can without.
+		\end{itemize}
+			
+\begin{figure}[H]		
+	\begin{center}
+		\includegraphics[width = 0.4\hsize]{./figures/HiddenNodes.png} % this includes the figure and specifies that it should span 0.7 times the horizontal size of the 
+			\caption{Hidden Nodes to introduce conditional independence.}
+		\label{fig:NaiveBayes} % a label. When we refer to this label from the text, the figure number is included automatically
+\end{center}
+\end{figure}			
+
+\begin{figure}[H]		
+	\begin{center}
+		\includegraphics[width = 0.4\hsize]{./figures/SwitchNodes.png} % this includes the figure and specifies that it should span 0.7 times the horizontal size of the 
+			\caption{Hidden Nodes to untangle double loops and acts as switch nodes.}
+		\label{fig:NaiveBayes} % a label. When we refer to this label from the text, the figure number is included automatically
+\end{center}
+\end{figure}	
+\end{enumerate}
+
+
+
+\subsection{Using Hidden Nodes}
+
+\begin{enumerate}
+\item To create a hidden note, we need to decide:
+	\begin{itemize}
+		\item How many states it should have.
+		\item Identify values for the 3 new linked matrices introduced.
+	\end{itemize}
+
+\item Determination of number of states:
+	\begin{itemize}
+		\item Number of states for hidden node will be comparable to the number of states of the nodes it is separating.
+		\item Expect the hidden node to have at least the same number of states of its parent.
+		\item Linked matrices with too many states will have low probabilities for some states. Hence, start with large number of states and then reduce them.
+	\end{itemize}
+
+\item Calculating the linked matrices (conditional probabilities)
+	\begin{enumerate}
+		\item Given the estimates of $P(H\vert A)$, $P(B\vert H)$, $P(C\vert H)$ and a set of data points $[a_i, b_j, c_k]$.
+		\item Use each $b_j$, $c_k$ to compute $P^\prime (A)$ from the network, calculate and accumulate the error
+			\begin{align*}
+				E = [P^\prime (A) - P(a_i)]^2
+			\end{align*}
+		\item Minimize $E$ over the data set by adjusted $P(H\vert A)$, $P(B\vert H)$, $P(C\vert H)$ using the gradient descent algorithm
+			\begin{align*}
+				P(h_k \vert a_j) &\rightarrow P(h_k \vert a_j)- \mu \frac{\partial E}{\partial P(h_k \vert a_j)}\\
+				P(b_j \vert h_k) &\rightarrow P(b_j \vert h_k) - \mu \frac{\partial E}{\partial P(b_j \vert h_k)}\\
+				P(c_j \vert h_k) &\rightarrow P(c_j \vert h_k) - \mu \frac{\partial E}{\partial P(c_j \vert h_k)}
+			\end{align*}
+		\item Using gradient descent may not actually arrive at the optimal answer due to the following issues:
+			\begin{itemize}
+				\item Distributions will no longer sum to 1.
+				\item Individual probability values may be greater than 1 or less than 0.
+				\item Conditional probability matrices need to be normalized and this may compromise finding an optimum solution.
+			\end{itemize}					
+		\item The propagation strategies for calculating errors as per Figure \ref{fig:PropagationStrategies}. If strategies are alternated during optimization, it produces annealing beahaviour
+		
+		\begin{figure}[H]		
+			\begin{center}
+			\includegraphics[width = 0.4\hsize]{./figures/PropagationStrategies.png} % this includes the figure and specifies that it should span 0.7 times the horizontal size of the 
+				\caption{Propagation Strategies in Calculating Errors.}
+			\label{fig:PropagationStrategies} % a label. When we refer to this label from the text, the figure number is included automatically
+			\end{center}
+		\end{figure}	
+
+	\end{enumerate}
+
+
+\item  Hidden nodes can be used to remove loops. We can always reduce any network to a singly connected form by this method as in Figure \ref{fig:ReduceLoops}, but the performance will be increasingly dependent on the training data and training process. 
+
+\begin{figure}[H]		
+	\begin{center}
+		\includegraphics[width = 0.5\hsize]{./figures/ReducingLoopsFinal.png} 
+			\caption{Propagation Strategies in Calculating Errors.}
+		\label{fig:ReduceLoops} % a label. When we refer to this label from the text, the figure number is included automatically
+	\end{center}
+\end{figure}	
+
+\item Limitations for hidden nodes
+	\begin{itemize}
+		\item We may need too many hidden nodes to model all dependencies through hidden nodes.
+		\item The number of states in the hidden node will become large.
+	\end{itemize}
+
+\item Criteria for introducing hidden nodes
+	\begin{itemize}
+		\item We measure the conditional dependency of each pair of children given the parents. 
+		\item If the dependency is high, we expect benefits from introduction of the hidden nodes. Else, we can ignore the dependency.
+	\end{itemize}
+
+\end{enumerate}
+
+\newpage
+
+\section{Exact Inference}
+There are methods to do approximate inference
+	\begin{enumerate}
+		\item \textbf{Cutset conditioning}
+		\begin{itemize}
+			\item \textbf{Method}: (1) Identify a cut set of nodes, which if instantiated makes propoagation terminate correctly, (2) If the node cannot be instantiated (no data), the network is broken into several networks, one for each possible states of the node		
+			\item \textbf{Problems}: (1) Computation time expands exponentially; (2) Not enough data to do it sufficiently.
+		\end{itemize}
+			
+		\item \textbf{Node clustering}
+		\begin{itemize}
+			\item \textbf{Method}: Combining the nodes into a new variable
+			\item \textbf{Problems}: The increase number of states in the new node limits the applicability of this method as the number of nodes goes up exponentially.
+		\end{itemize}				
+		
+		\item \textbf{Join trees}: 
+		\begin{itemize}
+			\item \textbf{Method}: Basically a generalization of the node clustering method. However, it is to find a systematic way to join the variables such that the probability propagation is possible.
+		\end{itemize}
+	\end{enumerate}
+
+\newpage
+
+\section{Join Trees}
+
+\subsection{Preliminaries}
+\begin{enumerate}
+	\item \textbf{Potential Representations.} Let $V$ be a finite set of propositional variables and $P$ be a joint probability distribution of $V$. Suppose  $W_i$, $1 \leq i \leq p$  is a collection of subsets of $V$, and $\psi$ is a function that assigns a unique real number to every combination of values of the propositional variables in $W_i$. Then we have
+	\begin{align*}
+		P(V) = K \prod_{i=1}^p \psi(W_i)
+	\end{align*}		
+	
+
+	
+	\item \textbf{The running intersection property.} Let $V$ be a set and  $\lbrace W_i \text{ such that } 1 \leq i \leq p$ be an \textbf{ordered} set of subsets of $V$. Then we have
+	\begin{align*}
+		S_i &= W_i \cap (W_1\cup W_2\cup \cdots \cup W_{i-1})\\
+		R_i & = W_i - S_i
+	\end{align*}
+
+	\item \textbf{Conditional probabilities} 
+		\begin{itemize}	
+			\item Let $V$ be a finite set of propositional variables, $P$ is a joint probability distribution of $V$ and $\lbrace W_i \forall i \leq \leq p\rbrace$ an ordered set of subsets of $V$
+				\begin{align*}
+					P(R_i\vert S_i) = P(W_i \vert S_i)
+				\end{align*}							
+			
+			\item Let $V$ be a finite set of propositional variables, $P$ is a joint probability distribution of $V$ and $(\lbrace W_i \forall i \leq \leq p\rbrace,\psi)$ a potential representation of $P$
+				\begin{align*}
+					P(R_p \vert S_p) =\frac{\psi(W_p)}{\sum_{R_p}\psi(W_p)}
+				\end{align*}
+			
+		\end{itemize}
+	
+	\item \textbf{Potential and running intersection property.} Let $V$ be a finite set of propositional variables and $P$ be a joint probability distribution of $V$ and $(W_i \forall 1 \leq i \leq p, \psi)$  a potential representation of $P$. If the ordering $[W_1, \ldots, W_p]$ has the running intersection property
+	\begin{align*}
+		P(V) = P(W_1) \prod_{i=2}^p P(R_i\vert S_i)
+	\end{align*}
+\end{enumerate}
+
+
+\subsection{Join Tree Construction from a DAG}
+A ordered subset of the variables can be found from a causal graph as fllow
+\begin{enumerate}
+	\item Moralisation
+	\begin{itemize}
+		\item For each child node with multiple parents, we need to ensure that the child and the parents are in the same clique.
+		\item Hence we need to marry the parents by constructing an edge joining the parents.
+	\end{itemize}
+	
+	\item Triangulation
+	\begin{itemize}
+		\item A chordal/triangulated graph is one in which all cycles of four or more nodes have a chord, i.e. an edge that is not part of the cycle but connects two nodes of the cycle. 
+		\item This is to ensure that the marginal distribution for a variable appearing in multiple nodes are consistent and equal.
+	\end{itemize}
+	
+	\item  Identify the cliques of the resulting graph
+	\begin{itemize}
+		\item  A clique is a maximal set of nodes in which every node is connected to every other.
+	\end{itemize}		
+	
+
+	\item Find an ordering with the running intersection property. Can be done using a search algorithm
+	\begin{enumerate}
+		\item Start with a clique containing a root of the original network
+		\item Find all nodes that can be its children - i.e. those for which any variable appearing higher up in the evolving tree is in the parent
+		\item Recursively search from the children till all cliques are joined
+	\end{enumerate}		
+	
+	
+	\item For each clique, $Clq$, find the set of its variables $\lbrace X_i \rbrace$ whose parents $Pa(X_i)$ also belongs to the clique and initialize the clique potential function as follows:
+	\begin{align*}
+		\psi(Clq) = \psi(W_i) = \prod_{\lbrace X_i \rbrace} P(X\vert Pa(X))
+	\end{align*}
+\end{enumerate}
+
+\subsection{Probability propagation in join trees}
+\begin{enumerate}
+\item 
+\item
+\item Computing $P(R\vert S)$
+	\begin{enumerate}
+	\item We can calculate the value with the following:
+		\begin{align*}
+			P(R\vert S) = \frac{\psi(W_i)}{\sum_R\psi(W_i)}
+		\end{align*}
+		
+	\item The clique potential function represent all accumulated evidence for that node. The formula above is a normalization that creates the link matrix from the accumulated evidence.
+	\end{enumerate}
+
+\item Sending $\lambda$ message
+
+\end{enumerate}
+
+
+
+
+
+\end{document}
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
